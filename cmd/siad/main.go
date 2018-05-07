@@ -160,7 +160,7 @@ func main() {
 	root.Flags().StringVarP(&globalConfig.Siad.RequiredUserAgent, "agent", "", "Sia-Agent", "required substring for the user agent")
 	root.Flags().StringVarP(&globalConfig.Siad.HostAddr, "host-addr", "", ":9982", "which port the host listens on")
 	root.Flags().StringVarP(&globalConfig.Siad.ProfileDir, "profile-directory", "", "profiles", "location of the profiling directory")
-	root.Flags().StringVarP(&globalConfig.Siad.APIaddr, "api-addr", "", "localhost:9980", "which host:port the API server listens on")
+	root.Flags().StringVarP(&globalConfig.Siad.APIaddr, "api-addr", "", "[::]:9980", "which host:port the API server listens on")
 	root.Flags().StringVarP(&globalConfig.Siad.SiaDir, "sia-directory", "d", "", "location of the sia directory")
 	root.Flags().BoolVarP(&globalConfig.Siad.NoBootstrap, "no-bootstrap", "", false, "disable bootstrapping on this run")
 	root.Flags().StringVarP(&globalConfig.Siad.Profile, "profile", "", "", "enable profiling with flags 'cmt' for CPU, memory, trace")

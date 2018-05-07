@@ -108,8 +108,8 @@ type (
 	// UnlockHash is the hash of the UnlockConditions that must be fulfilled
 	// in order to spend the output.
 	SiacoinOutput struct {
-		Value      Currency   `json:"value"`
-		UnlockHash UnlockHash `json:"unlockhash"`
+		Value           Currency   			`json:"value"`
+		UnlockHash      UnlockHash 			`json:"unlockhash"`
 	}
 
 	// A SiafundInput consumes a SiafundOutput and adds the siafunds to the set of
