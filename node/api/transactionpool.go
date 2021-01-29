@@ -86,33 +86,38 @@ func (api *API) tpoolRawHandlerGET(w http.ResponseWriter, _ *http.Request, ps ht
 // it to the transaction pool, relaying it to the transaction pool's peers
 // regardless of if the set is accepted.
 func (api *API) tpoolRawHandlerPOST(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	var parents []types.Transaction
-	var txn types.Transaction
+	// Try accepting the transactions both as base64 and as clean values.
+	//rawParents, err := base64.StdEncoding.DecodeString(req.FormValue("parents"))
+	//if err != nil {
+	//	rawParents = []byte(req.FormValue("parents"))
+	//}
+	rawTransaction, err := base64.StdEncoding.DecodeString(req.FormValue("transaction"))
+	if err != nil {
+		rawTransaction = []byte(req.FormValue("transaction"))
+	}
 
-	// JSON, base64, and raw binary are accepted
-	if err := json.Unmarshal([]byte(req.FormValue("parents")), &parents); err != nil {
-		rawParents, err := base64.StdEncoding.DecodeString(req.FormValue("parents"))
-		if err != nil {
-			rawParents = []byte(req.FormValue("parents"))
-		}
-		if err := encoding.Unmarshal(rawParents, &parents); err != nil {
-			WriteError(w, Error{"error decoding parents: " + err.Error()}, http.StatusBadRequest)
-			return
-		}
+	// Decode the transaction and parents into a transaction set that can be
+	// given to the transaction pool.
+	//var parents []types.Transaction
+	var txn types.Transaction
+	//err = encoding.Unmarshal(rawParents, &parents)
+	//if err != nil {
+	//	WriteError(w, Error{"error decoding parents:" + err.Error()}, http.StatusBadRequest)
+	//	return
+	//}
+	err = encoding.Unmarshal(rawTransaction, &txn)
+	//if err == nil {
+	//	WriteError(w, Error{"no error, unmarshal ok" + err.Error()}, http.StatusBadRequest)
+	//	return
+	//}
+	if err != nil {
+		WriteError(w, Error{"error decoding transaction:" + err.Error()}, http.StatusBadRequest)
+		return
 	}
-	if err := json.Unmarshal([]byte(req.FormValue("transaction")), &txn); err != nil {
-		rawTransaction, err := base64.StdEncoding.DecodeString(req.FormValue("transaction"))
-		if err != nil {
-			rawTransaction = []byte(req.FormValue("transaction"))
-		}
-		if err := encoding.Unmarshal(rawTransaction, &txn); err != nil {
-			WriteError(w, Error{"error decoding transaction: " + err.Error()}, http.StatusBadRequest)
-			return
-		}
-	}
-	// Broadcast the transaction set, so that they are passed to any peers that
+	//txnSet := append(parents, txn)
+	txnSet := []types.Transaction{txn}
+	// Re-broadcast the transactions, so that they are passed to any peers that
 	// may have rejected them earlier.
-	txnSet := append(parents, txn)
 	api.tpool.Broadcast(txnSet)
 	err := api.tpool.AcceptTransactionSet(txnSet)
 	if err != nil && !errors.Contains(err, modules.ErrDuplicateTransactionSet) {
