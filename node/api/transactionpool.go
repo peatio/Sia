@@ -86,20 +86,20 @@ func (api *API) tpoolRawHandlerGET(w http.ResponseWriter, _ *http.Request, ps ht
 // it to the transaction pool, relaying it to the transaction pool's peers
 // regardless of if the set is accepted.
 func (api *API) tpoolRawHandlerPOST(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	var parents []types.Transaction
+	// var parents []types.Transaction
 	var txn types.Transaction
 
-	// JSON, base64, and raw binary are accepted
-	if err := json.Unmarshal([]byte(req.FormValue("parents")), &parents); err != nil {
-		rawParents, err := base64.StdEncoding.DecodeString(req.FormValue("parents"))
-		if err != nil {
-			rawParents = []byte(req.FormValue("parents"))
-		}
-		if err := encoding.Unmarshal(rawParents, &parents); err != nil {
-			WriteError(w, Error{"error decoding parents: " + err.Error()}, http.StatusBadRequest)
-			return
-		}
-	}
+	// // JSON, base64, and raw binary are accepted
+	// if err := json.Unmarshal([]byte(req.FormValue("parents")), &parents); err != nil {
+	// 	rawParents, err := base64.StdEncoding.DecodeString(req.FormValue("parents"))
+	// 	if err != nil {
+	// 		rawParents = []byte(req.FormValue("parents"))
+	// 	}
+	// 	if err := encoding.Unmarshal(rawParents, &parents); err != nil {
+	// 		WriteError(w, Error{"error decoding parents: " + err.Error()}, http.StatusBadRequest)
+	// 		return
+	// 	}
+	// }
 	if err := json.Unmarshal([]byte(req.FormValue("transaction")), &txn); err != nil {
 		rawTransaction, err := base64.StdEncoding.DecodeString(req.FormValue("transaction"))
 		if err != nil {
@@ -112,7 +112,8 @@ func (api *API) tpoolRawHandlerPOST(w http.ResponseWriter, req *http.Request, _ 
 	}
 	// Broadcast the transaction set, so that they are passed to any peers that
 	// may have rejected them earlier.
-	txnSet := append(parents, txn)
+	// txnSet := append(parents, txn)
+	txnSet := []types.Transaction{txn}
 	api.tpool.Broadcast(txnSet)
 	err := api.tpool.AcceptTransactionSet(txnSet)
 	if err != nil && !errors.Contains(err, modules.ErrDuplicateTransactionSet) {

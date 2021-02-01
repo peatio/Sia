@@ -66,6 +66,8 @@ type ConsensusBlocksGet struct {
 	Timestamp    types.Timestamp         `json:"timestamp"`
 	MinerPayouts []types.SiacoinOutput   `json:"minerpayouts"`
 	Transactions []ConsensusBlocksGetTxn `json:"transactions"`
+	TransactionIDs []types.TransactionID                      `json:"transactionids"`
+	SiacoinOutputIDs map[string]types.SiacoinOutputID `json:"siacoinoutputids"`
 }
 
 // ConsensusBlocksGetTxn contains all fields of a types.Transaction and an
@@ -187,6 +189,19 @@ func consensusBlocksGetFromBlock(b types.Block, h types.BlockHeight, d types.Cur
 			TransactionSignatures: t.TransactionSignatures,
 		})
 	}
+
+	var transactionIDs []types.TransactionID
+	siacoinOutputIDs := make(map[string]types.SiacoinOutputID)
+
+	for _, txn := range b.Transactions {
+		txid := txn.ID()
+		transactionIDs = append(transactionIDs, txid)
+		for j := range txn.SiacoinOutputs {
+			key := fmt.Sprintf("%s_%d",txid,j)
+			siacoinOutputIDs[key] = txn.SiacoinOutputID(uint64(j))
+		}
+	}
+
 	return ConsensusBlocksGet{
 		ID:           b.ID(),
 		Height:       h,
@@ -196,6 +211,8 @@ func consensusBlocksGetFromBlock(b types.Block, h types.BlockHeight, d types.Cur
 		Timestamp:    b.Timestamp,
 		MinerPayouts: b.MinerPayouts,
 		Transactions: txns,
+		TransactionIDs: transactionIDs,
+		SiacoinOutputIDs: siacoinOutputIDs,
 	}
 }
 
